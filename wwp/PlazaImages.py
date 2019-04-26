@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+__author__ = "Jacob Gold"
+__copyright__ = "Copyright 2007, Jacob Gold"
+__credits__ = ["Jacob Gold"]
+__license__ = "GPL"
+__version__ = "1.0"
+__maintainer__ = "Jacob Gold"
+__status__ = "Prototype"
+
+"""
+   Translating images to and from Nintendos Base64, zlib-compressed format.
+"""
+
 import sys, io
 import argparse
 import zlib
@@ -12,7 +26,6 @@ parser.add_argument("-d", "--decode", action="store_true",
 parser.add_argument("-i", "--icon", action="store_true",
                     help="Set desired output dimensions to that of an icon(128x128), default dimensions are of painting size(320x120)")
 
-
 def main():
     args = parser.parse_args()
 
@@ -22,7 +35,7 @@ def main():
         print("Through the gauntlet")
     else:
         print("Attempting encode of image")
-        encode(args.file)
+        encode(args.file, args.icon)
         print("Through the gauntlet")
 
 # Convert image to tga, zlib compress, then base64encode
@@ -42,9 +55,9 @@ def decode(stringToDecode):
 
 # Take data string, base64decode, decompress result, convert to png
 # Output is TGA and PNG images from data
-def encode(imageToEncode):
+def encode(imageToEncode, isIcon = False):
     if imageToEncode[-4:] != ".tga":
-        convertPNGtoTGA(imageToEncode)
+        convertIMGtoTGA(imageToEncode, isIcon)
 
     imageToEncode = removeExt(imageToEncode) + ".tga"
 
@@ -60,8 +73,8 @@ def encode(imageToEncode):
             newFile.close()    
 
 # We may want to resize an image if this script is fed something that's the wrong size
-def resize(imageToResize):
-    sizeToFit = (128,128) if parser.parse_args().icon else (320,120)
+def resize(imageToResize, isIcon):
+    sizeToFit = (128,128) if isIcon else (320,120)
 
     # Find ratios
     widthRatio = float(sizeToFit[0]) / float(imageToResize.size[0])
@@ -88,13 +101,16 @@ def resize(imageToResize):
 # Converting to PNG
 def convertTGAtoPNG(imageToConvert):
     old = Image.open(imageToConvert)
-    new = old.save(imageToConvert.split(".")[0] + ".png")
+    new = old.save(removeExt(imageToConvert) + ".png")
 
 # Converting to TGA
-def convertPNGtoTGA(imageToConvert):
+def convertIMGtoTGA(imageToConvert, isIcon):
     old = Image.open(imageToConvert)
-    resized = resize(old)
-    new = resized.save(imageToConvert.split(".")[0] + ".tga")
+    resized = resize(old, isIcon)
+    if resized.mode == "RGB":
+        alph = Image.new('L', resized.size, 255)
+        resized.putalpha(alph)
+    new = resized.save(removeExt(imageToConvert) + ".tga")
 
 # Clean up any trailing extensions
 def removeExt(stringToEdit):
