@@ -59,6 +59,9 @@ def fetchIcon(titleID):
 def sanitize(arg):
     arg = arg.upper()
     arg = re.sub('[^0-9a-zA-Z]+', '', arg)
+    if len(arg) != 16:
+        print("Title format not correct")
+        sys.exit()
     return arg
 
 # Download the correct IDBE file
