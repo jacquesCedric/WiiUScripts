@@ -38,8 +38,8 @@ def main():
         encode(args.file, args.icon)
         print("Through the gauntlet")
 
-# Convert image to tga, zlib compress, then base64encode
-# Output is [FileName].data
+# Take data string, base64decode, decompress result, convert to png
+# Output is [FileName].[TGA/PNG]
 def decode(stringToDecode):
     with open(stringToDecode) as file:
         decode = base64.b64decode(file.read())
@@ -53,8 +53,9 @@ def decode(stringToDecode):
 
         convertTGAtoPNG(newName)
 
-# Take data string, base64decode, decompress result, convert to png
-# Output is TGA and PNG images from data
+# Convert image to tga, zlib compress, then base64encode
+# Output is [Filename].data
+# returns base64 encoded, compressed iamge, and size of the compressed image
 def encode(imageToEncode, isIcon = False):
     if imageToEncode[-4:] != ".tga":
         convertIMGtoTGA(imageToEncode, isIcon)
@@ -64,13 +65,16 @@ def encode(imageToEncode, isIcon = False):
     with open(imageToEncode, "rb") as image:
         byteImage = bytearray(image.read())
         compress = zlib.compress(byteImage)
+        sizeOfImage = sys.getsizeof(compress)
         encode = base64.b64encode(compress)
 
         newName = removeExt(imageToEncode) + ".data"
 
         with open(newName, "wb") as newFile:
             newFile.write(encode)
-            newFile.close()    
+            newFile.close()
+
+    return encode, sizeOfImage
 
 # We may want to resize an image if this script is fed something that's the wrong size
 def resize(imageToResize, isIcon):
