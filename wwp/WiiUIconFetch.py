@@ -9,8 +9,14 @@ __maintainer__ = "Jacob Gold"
 __status__ = "Prototype"
 
 """
-   Fetch idbe images from Nintendo and decode them into usable format
-   http://wiiubrew.org/wiki/Nn_idbe.rpl this info proved invaluable.
+   Fetch idbe images from Nintendo and decode them into usable format.
+   Requires Python3 and should be platform agnostic.
+   
+   This scripts would not have been possible without the work by NexoCube, NWPlayers123, and whomever 
+   created this entry - http://wiiubrew.org/wiki/Nn_idbe.rpl
+   NexoCube and NWPlayers123 projects can be found at:
+   - https://gist.github.com/NWPlayer123/7e6233aee364796c55d85f143bba4bd1
+   - https://github.com/NexoDevelopment/idbe_decrypt/blob/master/idbe_decrypt.py
 """
 
 import sys, io
