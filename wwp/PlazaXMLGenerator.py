@@ -12,6 +12,15 @@ __status__ = "Prototype"
    Generating 1stNUP.xml files for use with Nintendo Wii U's Wara Wara Plaza
 """
 
+dummyicon = ""
+dummyID = 1
+dummyName = "crab"
+dummyicons = ["0005000E1011B400", "0005000E1011C000", \
+              "0005000E10200A00", "00050000101A4E00", \
+              "00050000101A6300", "00050000101AD100", \
+              "00050000101AD400", "00050000101E6C00", \
+              "00050000101FC000", "000500001010A400"]
+
 from lxml import etree
 
 def generateBase():
@@ -25,6 +34,9 @@ def generateBase():
     topics = etree.SubElement(root, 'topics')
 
     for x in range(0,10):
+        with open("images/data/" + dummyicons[x]) as icon:
+            dummyicon = icon.read()
+
         t1 = generateTopic(dummyicon, dummyID + x, dummyName + str(x))
         topics.append(t1)
 
@@ -35,7 +47,7 @@ def generateTopic(icon, titleID, name):
     topic = etree.Element('topic')
     iconfield = subElementWithText(topic, 'icon', icon)
     titleid = subElementWithText(topic, 'title_id', str(titleID))
-    communityid = subElementWithText(topic, 'community_id', "4294967295")
+    communityid = subElementWithText(topic, 'community_id', str(titleID) + "1" )
     isrecommended = subElementWithText(topic, 'is_recommended', "0")
     namefield = subElementWithText(topic, 'name', name)
     participantcount = subElementWithText(topic, 'participant_count', "0")
@@ -47,7 +59,7 @@ def generateTopic(icon, titleID, name):
     # End add people
     empathyCount = subElementWithText(topic, "empathy_count", "0")
     hasShopPage = subElementWithText(topic, "has_shop_page", "0")
-    modifiedAt = subElementWithText(topic, "modified_at", "2012-04-23 06:35:47")
+    modifiedAt = subElementWithText(topic, "modified_at", "2019-04-23 06:35:47")
     position = subElementWithText(topic, "position", "2")
 
     return topic
