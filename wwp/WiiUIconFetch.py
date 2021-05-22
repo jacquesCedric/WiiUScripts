@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 # -*- coding: utf-8 -*-
 __author__ = "Jacob Gold"
 __copyright__ = "Copyright 2007, Jacob Gold"
@@ -26,6 +27,7 @@ import argparse
 from Crypto.Cipher import AES
 from struct import unpack
 import re
+import os
 
 urllib3.disable_warnings()
 
@@ -45,14 +47,20 @@ AES_KEYS = [K0, K1, K2, K3]
 # Argument if run as script
 parser = argparse.ArgumentParser(description="Fetch idbe images from Nintendo and decode them into usable format.")
 parser.add_argument("titleID", metavar="titleID", type=str,
-                    help="the titleID of the icon you want")
+                    help="the titleID of the icon you want", nargs="?", const="")
 
 def main():
     args = parser.parse_args()
 
-    print("Attempting retrieval and decode of image")
-    fetchIcon(args.titleID)
-    print("Through the gauntlet")
+    if (args.titleID):
+        print("Attempting retrieval and decode of image")
+        fetchIcon(args.titleID)
+        print("Through the gauntlet")
+    else:
+        with open('titleIDs', 'r') as f:
+            for line in f:
+                t = line[:16]
+                fetchIcon(t)
 
 # Called externally, if used as module
 # returns the name of the icon file and the titleID
@@ -86,7 +94,10 @@ def fetchIDBE(titleID):
 
 # returns the name of the icon file and the titleID    
 def decodeIDBE(titleID):
-    fileName = titleID + ".tga"
+    directory = "icons/"
+    os.makedirs(os.path.dirname(directory), exist_ok=True)
+
+    fileName = directory + titleID + ".tga"
 
     # Get what we need from the idbe file
     with open(titleID + ".idbe", "rb") as f:
@@ -94,28 +105,34 @@ def decodeIDBE(titleID):
         first = ord(first)
 
         # Check the header is correct
-        assert(first == 0)
-        # Which AES key do we need to decrypt
-        key = ord(f.read(1))
+        try:
+            assert(first == 0)
+            print("grabbing icon for: " + titleID)
+            # Which AES key do we need to decrypt
+            key = ord(f.read(1))
 
-        # Magic type-casting
-        AES_KEY = bytes(bytearray.fromhex(AES_KEYS[key]))
-        IV_KEY = bytes(bytearray.fromhex(IV))
+            # Magic type-casting
+            AES_KEY = bytes(bytearray.fromhex(AES_KEYS[key]))
+            IV_KEY = bytes(bytearray.fromhex(IV))
 
-        # Let's decrypt
-        aes = AES.new(AES_KEY, AES.MODE_CBC, IV_KEY)
-        idbe = aes.decrypt(f.read())
+            # Let's decrypt
+            aes = AES.new(AES_KEY, AES.MODE_CBC, IV_KEY)
+            idbe = aes.decrypt(f.read())
 
-        # Grab the title
-        title = idbe[0x250:0x250+0x80]
-        title = title.decode("UTF-16-BE")
+            # Grab the title
+            title = idbe[0x250:0x250+0x80]
+            title = title.decode("UTF-16-BE")
 
-        # write our tga file
-        with open(fileName, "wb") as newFile:
-            newFile.write(idbe[0x2050:])
+            # write our tga file
+            with open(fileName, "wb") as newFile:
+                newFile.write(idbe[0x2050:])
+                os.remove(titleID + ".idbe")
 
-            # if everything works we return these two
-            return fileName, title
+                # if everything works we return these two
+                return fileName, title
+        except:
+            print("failed for: " + titleID)
+            return
 
 
 # if standalone script
