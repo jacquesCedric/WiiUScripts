@@ -30,17 +30,26 @@ async def voteForTitle(ctx, titleID):
     s = d.split(';')
 
     embed=discord.Embed(title=s[1], description="Added vote for \"" + s[1] + "\"")
-    embed.set_footer(text= s[2].upper() + " region - id:" + s[0])
+    embed.set_footer(text= "[" + s[2].upper().rstrip() + "] - " + s[0])
     file = discord.File("../images/pngs/" + titleID + ".png", filename="image.png")
     embed.set_thumbnail(url="attachment://image.png")
+
+    writeVoteToFile(titleID)
+
     await ctx.send(file=file, embed=embed)
 
 
 
 # helper functions
+def writeVoteToFile(titleID):
+    with open("../text/vote.txt", "a") as f:
+        f.write(titleID + "\r")
+
+
+
 def formattedStringfromResult(result):
-    s = result.split(';')
-    f = "\"" + s[1] + "\" - " + s[2].upper() + " - id: " + s[0]
+    s = result.rstrip().split(';')
+    f = "\"" + s[1] + "\" [" + s[2].upper() + "] - id: " + s[0]
     return f
 
 def formatSearchResults(results):
@@ -56,9 +65,9 @@ def searchByTitle(term):
 
     with open("../text/titleinfo") as f:
         for line in f:
-            if term in line:
+            if term.upper() in line.upper():
                 results.append(line)
-            if len(results) > 4 :
+            if len(results) > 5 :
                 return results
 
     return results
