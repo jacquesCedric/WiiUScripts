@@ -45,19 +45,20 @@ async def voteForTitle(ctx, titleID):
 
 @bot.event
 async def on_message(message):
-    if message.content[0] == "!":
+    if not message.content:
         return
     elif message.author == bot.user:
         return
+    elif message.content[0] == "!" :
+        await bot.process_commands(message)
     elif message.content.strip() != "":
         ts = message.created_at
         st = ts.strftime('%Y-%m-%d %H:%M:%S')
 
         sanit = escape(unescape(message.content[:100].strip().strip(";;")))
+        saname = escape(unescape(message.author.name[:20].strip().strip(";;")))
         with open("../text/msg.txt", "a") as f:
-            f.write(st + ";;" + sanit + "\r")
-
-    await bot.process_commands(message)
+            f.write(st + ";;" + sanit + ";;" + saname +"\r")
 
 
 # helper functions
@@ -99,7 +100,7 @@ def searchByTitle(term):
 def detailsFromID(titleID):
     with open("../text/titleinfo.txt") as f:
         for line in f:
-            if line[0:16] == titleID:
+            if line[8:16] == titleID[8:16]:
                 return line
     return 0
 
