@@ -17,7 +17,7 @@ bot = commands.Bot(command_prefix='!')
 async def searchForTitle(ctx, term):
     results = searchByTitle(term)
     if len(results) == 0:
-        embed=discord.Embed(title="No titles found", description="Sorry, no titles found containing: " + term + "\"")
+        embed=discord.Embed(title="No titles found", description="Sorry, no titles found containing: \"" + term + "\"")
         await ctx.send(embed=embed)
     else:
         embed=discord.Embed(title="Search results for: \"" + term + "\"", description=formatSearchResults(results) )
@@ -27,29 +27,35 @@ async def searchForTitle(ctx, term):
 @bot.command(name="vote", help="Vote for a title using its id")
 async def voteForTitle(ctx, titleID):
     d = detailsFromID(titleID)
-    s = d.split(';')
 
-    embed=discord.Embed(title=s[1], description="Added vote for \"" + s[1] + "\"")
-    embed.set_footer(text= "[" + s[2].upper().rstrip() + "] - " + s[0])
-    file = discord.File("../images/pngs/" + titleID + ".png", filename="image.png")
-    embed.set_thumbnail(url="attachment://image.png")
+    if d == 0:
+        embed=discord.Embed(title="Vote failed", description="Sorry, I don't recognize \"" + titleID + "\" as a title ID\rTry using the \"!search\" command to find the correct ID")
+        await ctx.send(embed=embed)
+    else:
+        s = d.split(';')
 
-    writeVoteToFile(titleID)
+        embed=discord.Embed(title="Added vote for \"" + s[1] + "\"", description="[" + s[2].upper().rstrip() + "] - " + s[0])
+        file = discord.File("../images/pngs/" + titleID + ".png", filename="image.png")
+        embed.set_thumbnail(url="attachment://image.png")
 
-    await ctx.send(file=file, embed=embed)
+        writeVoteToFile(titleID)
+
+        await ctx.send(file=file, embed=embed)
 
 
 
 # helper functions
+# Vote functions
+# Write titleID to file for vote tallying
 def writeVoteToFile(titleID):
     with open("../text/vote.txt", "a") as f:
         f.write(titleID + "\r")
 
 
-
+# Printing functions
 def formattedStringfromResult(result):
     s = result.rstrip().split(';')
-    f = "\"" + s[1] + "\" [" + s[2].upper() + "] - id: " + s[0]
+    f = "\"" + s[1] + "\" [" + s[2].upper() + "] - " + s[0]
     return f
 
 def formatSearchResults(results):
@@ -60,10 +66,11 @@ def formatSearchResults(results):
     return "\n".join(s)
 
 
+# Searching functions
 def searchByTitle(term):
     results = []
 
-    with open("../text/titleinfo") as f:
+    with open("../text/titleinfo.txt") as f:
         for line in f:
             if term.upper() in line.upper():
                 results.append(line)
@@ -74,11 +81,11 @@ def searchByTitle(term):
 
 
 def detailsFromID(titleID):
-    with open("../text/titleinfo") as f:
+    with open("../text/titleinfo.txt") as f:
         for line in f:
             if line[0:16] == titleID:
                 return line
-    return "not found"
+    return 0
 
 def titleFromID(titleID):
     d = detailsFromID(titleID)
