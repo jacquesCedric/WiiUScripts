@@ -1,6 +1,8 @@
 # WWP Bot
 
 import os
+from datetime import datetime
+from xml.sax.saxutils import escape, unescape
 
 import discord
 from dotenv import load_dotenv
@@ -11,7 +13,6 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='!')
-
 
 @bot.command(name="search", help="Search for ids by title")
 async def searchForTitle(ctx, term):
@@ -42,6 +43,21 @@ async def voteForTitle(ctx, titleID):
 
         await ctx.send(file=file, embed=embed)
 
+@bot.event
+async def on_message(message):
+    if message.content[0] == "!":
+        return
+    elif message.author == bot.user:
+        return
+    elif message.content.strip() != "":
+        ts = message.created_at
+        st = ts.strftime('%Y-%m-%d %H:%M:%S')
+
+        sanit = escape(unescape(message.content[:100].strip().strip(";;")))
+        with open("../text/msg.txt", "a") as f:
+            f.write(st + ";;" + sanit + "\r")
+
+    await bot.process_commands(message)
 
 
 # helper functions
